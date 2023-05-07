@@ -16,8 +16,8 @@ def generate_RSA_instance(modulus_bit_length, delta=0.25):
     :param delta: a given size on the private exponent (d is roughly N^delta) (default: 0.25)
     :return: a tuple containing the public key (N, e)
     """
-    if modulus_bit_length < 1024:
-        raise ValueError("RSA modulus length must be >= 1024")
+    # if modulus_bit_length < 1024:
+    #     raise ValueError("RSA modulus length must be >= 1024")
     e = d = N = Integer(1)
     d_bit_length = ceil(modulus_bit_length * delta)
     logging.info(f"Generating RSA instance with {modulus_bit_length}-bit modulus and {d_bit_length}-bit private key d...")
@@ -42,46 +42,44 @@ def attack_RSA_instance(modulus_bit_length, delta=0.25, m=3):
     """
     N, e  = generate_RSA_instance(modulus_bit_length, delta)
     p_bits = modulus_bit_length / 2
-    if boneh_durfee.attack(N, e, p_bits, delta, m) is not None:
-        p, q = boneh_durfee.attack(N, e, p_bits, delta, m)
-    else:
-        logging.info(f"Failed!")
-        return 0
-    if p and q and p * q == N:
+    p, q = boneh_durfee.attack(N, e, p_bits, delta, m)
+    if p is not None and q is not None and p * q == N:
         logging.info(f"Succeeded!")
         logging.info(f"Found p = {p}")
         logging.info(f"Found q = {q}")
         return 1
     else:
-        logging.info(f"Failed")
+        logging.info(f"Failed!")
         return 0
 
 # Some logging so we can see what's happening.
 # logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=logging.INFO)
 
-p_bits = 512
-modulus_bit_length = p_bits * 2
+# p_bits = 512
+# modulus_bit_length = p_bits * 2
 # delta = 0.25
-m = 4
+# test_times = 5
+# m = 5
 
-test_params = [0.263]
-test_times = 10
+p_bits = int(input("Input prime bit-length: "))
+delta = float(input("Input delta: "))
+test_times = int(input("Input attack times: "))
+m = int(input("Input m: "))
+modulus_bit_length = p_bits * 2
 
-for delta in test_params:
-    logging.info(f"Test for delta={delta} with {test_times} times:")
-    total_time = 0
-    results = []
-    for i in range(test_times):
-        start_time = timeit.default_timer()
-        result = attack_RSA_instance(modulus_bit_length, delta=delta, m=m)
-        end_time = timeit.default_timer()
-        test_time = end_time - start_time
-        if result:
-            total_time += test_time
-            results.append(result)
-        logging.info(f"Test {i+1} costs {test_time:.6f} seconds")
+logging.info(f"Test for delta={delta} with {test_times} times:")
+total_time = 0
+results = []
+for i in range(test_times):
+    start_time = timeit.default_timer()
+    result = attack_RSA_instance(modulus_bit_length, delta=delta, m=m)
+    end_time = timeit.default_timer()
+    test_time = end_time - start_time
+    if result:
+        total_time += test_time
+        results.append(result)
+    logging.info(f"Test {i+1} costs {test_time:.6f} seconds")
 
-    avg_time = total_time / len(results)
-    logging.info(f"The success rate for delta={delta} using m={m} is {sum(results)/test_times*100}% and average time is {avg_time:.6f} seconds")
-    print()
+avg_time = total_time / len(results)
+logging.info(f"The success rate for delta={delta} using m={m} is {sum(results)/test_times*100}% and average time is {avg_time:.6f} seconds")

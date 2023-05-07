@@ -37,7 +37,7 @@ def attack(N, e, factor_bit_length, delta=0.25, m=1, t=None):
             if factors:
                 return factors
 
-    return None
+    return None, None
 
 
 def attack_multi_prime(N, e, factor_bit_length, factors, delta=0.25, m=1, t=None):
